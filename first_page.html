@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>My Starry Library</title>
+
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+    background: radial-gradient(circle at center, #1b2440 0%, #0a0f1f 80%);
+    font-family: Georgia, serif;
+    color: white;
+}
+
+/* SKY */
+.sky {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+/* SUBTLE AURORA GLOW */
+.aurora {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: radial-gradient(ellipse at center top, rgba(100, 150, 255, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+    animation: auroraGlow 8s ease-in-out infinite;
+}
+
+@keyframes auroraGlow {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+/* MOON - NORMAL FULL MOON */
+.moon {
+    position: fixed;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle at 35% 35%, #ffffff 0%, #f5f5f5 20%, #e8e8e8 50%, #d0d0d0 100%);
+    border-radius: 50%;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 0 60px rgba(255,255,255,0.5), inset -10px -10px 30px rgba(0,0,0,0.2);
+    z-index: 2;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.moon:hover {
+    box-shadow: 0 0 90px rgba(255,255,255,0.8), inset -10px -10px 30px rgba(0,0,0,0.2);
+}
+
+.moon.active {
+    animation: moonFloatCenter 3s ease-out forwards;
+    position: fixed;
+}
+
+@keyframes moonFloatCenter {
+    0% {
+        width: 120px;
+        height: 120px;
+        top: 60px;
+        left: 50%;
+        transform: translateX(-50%);
+        box-shadow: 0 0 60px rgba(255,255,255,0.5);
+    }
+    100% {
+        width: 250px;
+        height: 250px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 0 150px rgba(150,200,255,1), 0 0 200px rgba(100,150,255,0.8);
+    }
+}
+
+.moon.active::after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    box-shadow: inset 0 0 60px rgba(150,200,255,0.3);
+    animation: moonPulse 2s ease-in-out infinite;
+}
+
+@keyframes moonPulse {
+    0%, 100% { box-shadow: inset 0 0 60px rgba(150,200,255,0.2); }
+    50% { box-shadow: inset 0 0 100px rgba(150,200,255,0.5); }
+}
+
+/* DARK OVERLAY */
+.dark-overlay {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: rgba(10, 15, 30, 0);
+    z-index: 85;
+    pointer-events: auto;
+    animation: overlayDarken 2s ease-out forwards;
+    cursor: pointer;
+}
+
+.dark-overlay.closing {
+    animation: overlayLighten 1.5s ease-out forwards;
+}
+
+@keyframes overlayDarken {
+    0% { background: rgba(10, 15, 30, 0); }
+    100% { background: rgba(10, 15, 30, 0.85); }
+}
+
+@keyframes overlayLighten {
+    0% { background: rgba(10, 15, 30, 0.85); }
+    100% { background: rgba(10, 15, 30, 0); }
+}
+
+/* MESSAGE CONTAINER */
+.message-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 95;
+    pointer-events: none;
+    text-align: center;
+}
+
+.message-container.closing {
+    animation: messageClose 1s ease-out forwards;
+}
+
+@keyframes messageClose {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+}
+
+.message-glow {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(150,200,255,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    z-index: -1;
+    animation: glowPulse 3s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+    0%, 100% { 
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.5;
+    }
+    50% { 
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 1;
+    }
+}
+
+.message-line {
+    font-size: 28px;
+    font-weight: 300;
+    letter-spacing: 2px;
+    margin: 25px 0;
+    opacity: 0;
+    text-shadow: 0 0 30px rgba(150,200,255,0.8), 0 0 60px rgba(100,150,255,0.4);
+}
+
+.line1 { animation: slideInDown 1.5s ease-out 0.8s forwards; }
+.line2 { animation: slideInUp 1.5s ease-out 1.5s forwards; }
+.line3 { animation: slideInDown 1.5s ease-out 2.2s forwards; }
+.line4 { animation: slideInUp 1.5s ease-out 2.9s forwards; }
+
+.close-hint {
+    font-size: 14px;
+    margin-top: 50px;
+    opacity: 0;
+    animation: fadeInHint 1s ease-out 3.8s forwards;
+    color: rgba(150,200,255,0.7);
+    font-style: italic;
+}
+
+@keyframes slideInDown {
+    0% {
+        opacity: 0;
+        transform: translateY(-60px);
+        filter: blur(15px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
+@keyframes slideInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(60px);
+        filter: blur(15px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
+@keyframes fadeInHint {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+/* LIGHT RAYS */
+.light-ray {
+    position: fixed;
+    pointer-events: none;
+    z-index: 87;
+}
+
+.ray-line {
+    width: 2px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.6), transparent);
+    animation: rayShine 2.5s ease-out forwards;
+}
+
+@keyframes rayShine {
+    0% {
+        height: 0;
+        opacity: 1;
+    }
+    100% {
+        height: 400px;
+        opacity: 0;
+    }
+}
+
+/* FLOATING PARTICLES */
+.float-particle {
+    position: fixed;
+    pointer-events: none;
+    z-index: 88;
+}
+
+.particle-dot {
+    width: 3px;
+    height: 3px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(150,200,255,0.9);
+    animation: floatUp 4s ease-out forwards;
+}
+
+@keyframes floatUp {
+    0% {
+        opacity: 1;
+        transform: translateY(0) translateX(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-350px) translateX(var(--tx));
+    }
+}
+
+/* BOOK ICONS */
+.portal-book {
+    position: fixed;
+    pointer-events: none;
+    z-index: 88;
+    font-size: 30px;
+    animation: floatAround 5s ease-in-out infinite;
+}
+
+.portal-book.fade-away {
+    animation: bookFadeOut 1s ease-out forwards;
+}
+
+@keyframes floatAround {
+    0%, 100% { 
+        transform: translateY(0) rotateZ(0deg);
+        opacity: 0.6;
+    }
+    50% { 
+        transform: translateY(-30px) rotateZ(10deg);
+        opacity: 1;
+    }
+}
+
+@keyframes bookFadeOut {
+    0% {
+        opacity: 1;
+        transform: translateY(0) rotateZ(0deg);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(50px) rotateZ(20deg);
+    }
+}
+
+/* STAR SHAPE */
+.star {
+    position: absolute;
+    background: white;
+    clip-path: polygon(
+        50% 0%, 61% 35%, 98% 35%,
+        68% 57%, 79% 91%,
+        50% 70%, 21% 91%,
+        32% 57%, 2% 35%, 39% 35%
+    );
+    box-shadow:
+        0 0 2px white,
+        0 0 4px rgba(255,255,255,0.6),
+        0 0 8px rgba(255,255,255,0.3);
+    animation: twinkle 3s infinite alternate ease-in-out;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.star:hover {
+    transform: scale(2.5) !important;
+    box-shadow:
+        0 0 5px white,
+        0 0 15px rgba(150,200,255,0.8),
+        0 0 25px rgba(100,150,255,0.6);
+}
+
+.star.fade-out {
+    animation: starFadeOut 1.5s ease-out forwards;
+}
+
+.star.fade-in {
+    animation: starFadeIn 1.5s ease-out forwards;
+}
+
+@keyframes starFadeOut {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+}
+
+@keyframes starFadeIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes twinkle {
+    from { opacity: 0.5; }
+    to { opacity: 1; }
+}
+
+/* STAR TOOLTIP */
+.star-tooltip {
+    position: fixed;
+    background: rgba(10, 15, 30, 0.95);
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    white-space: normal;
+    max-width: 200px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border: 1px solid rgba(150,200,255,0.5);
+    box-shadow: 0 0 15px rgba(100,150,255,0.3);
+    z-index: 10;
+}
+
+.star-tooltip.show {
+    opacity: 1;
+}
+
+/* SPARKLE PARTICLES */
+.sparkle {
+    position: fixed;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.sparkle-dot {
+    width: 2px;
+    height: 2px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 4px rgba(200,220,255,0.6);
+    animation: float-sparkle 8s infinite ease-in-out;
+}
+
+@keyframes float-sparkle {
+    0%, 100% { 
+        opacity: 0.3;
+        transform: translateY(0) translateX(0);
+    }
+    50% { 
+        opacity: 0.8;
+        transform: translateY(-20px) translateX(10px);
+    }
+}
+
+/* QUOTE CARD */
+.quoteCard {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(10, 15, 30, 0.98);
+    padding: 40px 50px;
+    border-radius: 20px;
+    max-width: 600px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 0 40px rgba(0,0,0,0.7), 0 0 60px rgba(100,150,255,0.2);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    z-index: 100;
+    pointer-events: auto;
+}
+
+.quoteCard.show {
+    opacity: 1;
+}
+
+.quoteText {
+    font-size: 20px;
+    margin-bottom: 20px;
+    line-height: 1.6;
+    font-weight: 300;
+    color: #fff;
+}
+
+.bookName {
+    font-size: 14px;
+    opacity: 0.8;
+    font-style: italic;
+    color: rgba(150,200,255,0.9);
+}
+
+/* SHOOTING STAR */
+.shooting-star {
+    position: fixed;
+    width: 1px;
+    height: 1px;
+    background: white;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.shooting-star::before {
+    content: "";
+    position: absolute;
+    top: -0.5px;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    background: white;
+    border-radius: 50%;
+    box-shadow:
+        0 0 5px white,
+        0 0 10px rgba(150,200,255,0.6),
+        0 0 15px rgba(100,150,255,0.3);
+}
+
+.shooting-star::after {
+    content: "";
+    position: absolute;
+    top: -0.5px;
+    left: 1px;
+    width: 120px;
+    height: 1px;
+    background: linear-gradient(to right, 
+        rgba(255,255,255,0.7) 0%,
+        rgba(150,200,255,0.5) 15%,
+        rgba(100,150,255,0.2) 40%,
+        transparent 100%);
+    box-shadow: 0 0 8px rgba(100,180,255,0.4);
+    filter: blur(0.5px);
+}
+</style>
+</head>
+
+<body>
+
+<div class="sky" id="sky">
+    <div class="aurora"></div>
+    <div class="moon" id="moon"></div>
+</div>
+
+<script>
+const sky = document.getElementById("sky");
+const moon = document.getElementById("moon");
+
+let stars = [];
+let quotes = [];
+let quoteCard = null;
+let tooltips = {};
+let starQuotes = {};
+let portalActive = false;
+let currentOverlay = null;
+let currentMessage = null;
+
+/* CREATE SPARKLE PARTICLES */
+function createSparkles() {
+    for (let i = 0; i < 25; i++) {
+        const sparkle = document.createElement("div");
+        sparkle.classList.add("sparkle");
+        
+        const x = Math.random() * 100;
+        const y = Math.random() * 100;
+        const delay = Math.random() * 8;
+        const duration = Math.random() * 4 + 6;
+        
+        sparkle.style.left = x + "%";
+        sparkle.style.top = y + "%";
+        
+        const dot = document.createElement("div");
+        dot.classList.add("sparkle-dot");
+        dot.style.animationDelay = delay + "s";
+        dot.style.animationDuration = duration + "s";
+        
+        sparkle.appendChild(dot);
+        sky.appendChild(sparkle);
+    }
+}
+
+/* FADE OUT ALL STARS */
+function fadeOutStars() {
+    stars.forEach(star => {
+        star.classList.add("fade-out");
+    });
+}
+
+/* FADE IN ALL STARS */
+function fadeInStars() {
+    stars.forEach(star => {
+        star.classList.remove("fade-out");
+        star.classList.add("fade-in");
+        
+        setTimeout(() => {
+            star.classList.remove("fade-in");
+        }, 1500);
+    });
+}
+
+/* CREATE LIGHT RAYS */
+function createLightRays() {
+    const rayCount = 16;
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    
+    for (let i = 0; i < rayCount; i++) {
+        const ray = document.createElement("div");
+        ray.classList.add("light-ray");
+        
+        const angle = (i / rayCount) * Math.PI * 2;
+        const x = centerX + Math.cos(angle) * 80;
+        const y = centerY + Math.sin(angle) * 80;
+        
+        ray.style.left = x + "px";
+        ray.style.top = y + "px";
+        ray.style.transform = `rotate(${angle * 180 / Math.PI}deg)`;
+        
+        const line = document.createElement("div");
+        line.classList.add("ray-line");
+        ray.appendChild(line);
+        
+        sky.appendChild(ray);
+        
+        setTimeout(() => {
+            ray.remove();
+        }, 2500);
+    }
+}
+
+/* CREATE FLOATING PARTICLES */
+function createFloatingParticles() {
+    const particleCount = 50;
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement("div");
+        particle.classList.add("float-particle");
+        
+        const angle = (i / particleCount) * Math.PI * 2;
+        const startRadius = 120;
+        const startX = centerX + Math.cos(angle) * startRadius;
+        const startY = centerY + Math.sin(angle) * startRadius;
+        
+        particle.style.left = startX + "px";
+        particle.style.top = startY + "px";
+        
+        const dot = document.createElement("div");
+        dot.classList.add("particle-dot");
+        
+        const driftX = (Math.random() - 0.5) * 250;
+        dot.style.setProperty("--tx", driftX + "px");
+        
+        particle.appendChild(dot);
+        sky.appendChild(particle);
+        
+        setTimeout(() => {
+            particle.remove();
+        }, 4000);
+    }
+}
+
+/* CREATE FLOATING BOOK ICONS */
+function createBookIcons() {
+    const bookCount = 6;
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    
+    for (let i = 0; i < bookCount; i++) {
+        const book = document.createElement("div");
+        book.classList.add("portal-book");
+        book.textContent = "📖";
+        
+        const angle = (i / bookCount) * Math.PI * 2;
+        const radius = 200;
+        const x = centerX + Math.cos(angle) * radius;
+        const y = centerY + Math.sin(angle) * radius;
+        
+        book.style.left = x + "px";
+        book.style.top = y + "px";
+        book.style.animationDelay = (i * 0.3) + "s";
+        
+        sky.appendChild(book);
+    }
+}
+
+/* REMOVE ALL PORTAL BOOKS */
+function removePortalBooks() {
+    const books = document.querySelectorAll(".portal-book");
+    books.forEach(book => {
+        book.classList.add("fade-away");
+        setTimeout(() => {
+            book.remove();
+        }, 1000);
+    });
+}
+
+/* CREATE THANK YOU MESSAGE */
+function createThankYouMessage() {
+    const container = document.createElement("div");
+    container.classList.add("message-container");
+    
+    const glow = document.createElement("div");
+    glow.classList.add("message-glow");
+    container.appendChild(glow);
+    
+    const messages = [
+        "Thank you for visiting my Starry Library",
+        "I hope you find comfort in books like I do",
+        "Go ahead, read the books you found",
+        "Let the stories carry you to magical worlds ✨"
+    ];
+    
+    messages.forEach((msg, index) => {
+        const line = document.createElement("div");
+        line.classList.add("message-line", `line${index + 1}`);
+        line.textContent = msg;
+        container.appendChild(line);
+    });
+    
+    const hint = document.createElement("div");
+    hint.classList.add("close-hint");
+    hint.textContent = "Click anywhere to return to the library";
+    container.appendChild(hint);
+    
+    sky.appendChild(container);
+    
+    return container;
+}
+
+/* CLOSE PORTAL */
+function closePortal() {
+    if (!portalActive) return;
+    portalActive = false;
+    
+    if (currentOverlay) {
+        currentOverlay.classList.add("closing");
+    }
+    
+    if (currentMessage) {
+        currentMessage.classList.add("closing");
+    }
+    
+    // Remove portal books immediately
+    removePortalBooks();
+    
+    moon.classList.remove("active");
+    
+    setTimeout(() => {
+        if (currentOverlay) {
+            currentOverlay.remove();
+            currentOverlay = null;
+        }
+        if (currentMessage) {
+            currentMessage.remove();
+            currentMessage = null;
+        }
+        
+        fadeInStars();
+        moon.style.top = "60px";
+        moon.style.left = "50%";
+        moon.style.transform = "translateX(-50%)";
+    }, 1500);
+}
+
+/* ACTIVATE PORTAL */
+function activatePortal() {
+    if (portalActive) return;
+    portalActive = true;
+    
+    fadeOutStars();
+    moon.classList.add("active");
+    
+    // Create overlay
+    currentOverlay = document.createElement("div");
+    currentOverlay.classList.add("dark-overlay");
+    currentOverlay.addEventListener("click", closePortal);
+    sky.appendChild(currentOverlay);
+    
+    // Create effects with delays
+    setTimeout(() => {
+        createLightRays();
+        createFloatingParticles();
+        createBookIcons();
+    }, 400);
+    
+    setTimeout(() => {
+        currentMessage = createThankYouMessage();
+    }, 600);
+}
+
+/* LOAD QUOTES FROM JSON */
+fetch("quotes.json")
+.then(res => res.json())
+.then(data => {
+    quotes = data;
+    console.log("✅ Loaded " + quotes.length + " quotes");
+    initUniverse();
+})
+.catch(err => {
+    console.log("⚠️ quotes.json not found - using demo mode");
+    quotes = [
+        { text: "It is a truth universally acknowledged that a single man in possession of a good book must be in want of a comfortable chair.", book: "Pride and Prejudice - Jane Austen" },
+        { text: "It was the best of times, it was the worst of times.", book: "A Tale of Two Cities - Charles Dickens" },
+        { text: "Call me Ishmael.", book: "Moby Dick - Herman Melville" },
+        { text: "The only way to do great work is to love what you do.", book: "Steve Jobs" },
+        { text: "It was love at first sight the first moment Zaphod Beeblebrox saw the girl.", book: "The Hitchhiker's Guide to the Galaxy" }
+    ];
+    initUniverse();
+});
+
+function initUniverse() {
+    createSparkles();
+    createStars();
+    startShootingStars();
+}
+
+/* CREATE STARS AND ASSIGN UNIQUE QUOTES */
+function createStars() {
+    for (let i = 0; i < 90; i++) {
+        const star = document.createElement("div");
+        star.classList.add("star");
+        star.dataset.index = i;
+
+        const size = Math.random() * 4 + 4;
+        star.style.width = size + "px";
+        star.style.height = size + "px";
+
+        positionStar(star);
+
+        const quoteIndex = i % quotes.length;
+        starQuotes[i] = quotes[quoteIndex];
+
+        star.addEventListener("mouseenter", (e) => {
+            showStarTooltip(star, i);
+        });
+
+        star.addEventListener("mouseleave", (e) => {
+            hideStarTooltip(i);
+        });
+
+        star.addEventListener("click", (e) => {
+            e.stopPropagation();
+            showQuoteForStar(i);
+        });
+
+        sky.appendChild(star);
+        stars.push(star);
+    }
+}
+
+/* RANDOM POSITION */
+function positionStar(star) {
+    const top = Math.random() * 100;
+    const left = Math.random() * 100;
+    
+    star.style.top = top + "%";
+    star.style.left = left + "%";
+}
+
+/* SHOW TOOLTIP ON HOVER */
+function showStarTooltip(star, index) {
+    if (!quotes.length) return;
+    
+    if (tooltips[index]) {
+        tooltips[index].remove();
+    }
+    
+    const quote = starQuotes[index];
+    const bookName = quote.book.includes(" - ") ? quote.book.split(" - ")[0] : quote.book;
+    
+    const tooltip = document.createElement("div");
+    tooltip.classList.add("star-tooltip");
+    tooltip.textContent = `"${quote.text}" — ${bookName}`;
+    
+    sky.appendChild(tooltip);
+    tooltips[index] = tooltip;
+    
+    const rect = star.getBoundingClientRect();
+    tooltip.style.left = (rect.left + rect.width / 2 - 100) + "px";
+    tooltip.style.top = (rect.top - 50) + "px";
+    
+    setTimeout(() => {
+        tooltip.classList.add("show");
+    }, 10);
+}
+
+/* HIDE TOOLTIP */
+function hideStarTooltip(index) {
+    if (tooltips[index]) {
+        tooltips[index].classList.remove("show");
+        setTimeout(() => {
+            if (tooltips[index]) {
+                tooltips[index].remove();
+                delete tooltips[index];
+            }
+        }, 300);
+    }
+}
+
+/* SHOW QUOTE FOR SPECIFIC STAR */
+function showQuoteForStar(index) {
+    if (!quotes.length) {
+        console.log("❌ No quotes loaded!");
+        return;
+    }
+
+    if (quoteCard) {
+        quoteCard.remove();
+    }
+
+    const quote = starQuotes[index];
+
+    quoteCard = document.createElement("div");
+    quoteCard.classList.add("quoteCard");
+
+    quoteCard.innerHTML = `
+        <div class="quoteText">"${quote.text}"</div>
+        <div class="bookName">— ${quote.book}</div>
+    `;
+
+    sky.appendChild(quoteCard);
+
+    setTimeout(() => {
+        quoteCard.classList.add("show");
+    }, 50);
+}
+
+/* CLOSE QUOTE ON SKY CLICK */
+sky.addEventListener("click", (e) => {
+    if (quoteCard && e.target === sky) {
+        quoteCard.remove();
+        quoteCard = null;
+    }
+});
+
+/* MOON CLICK - ACTIVATE PORTAL */
+moon.addEventListener("click", (e) => {
+    e.stopPropagation();
+    activatePortal();
+});
+
+/* SHOOTING STARS */
+function startShootingStars() {
+    setInterval(() => {
+        let count = Math.floor(Math.random() * 2) + 1;
+
+        for (let i = 0; i < count; i++) {
+            setTimeout(() => {
+                createShootingStar();
+            }, i * 600);
+        }
+
+    }, 4000);
+}
+
+function createShootingStar() {
+    const star = document.createElement("div");
+    star.classList.add("shooting-star");
+
+    const startX = Math.random() * 30 - 10;
+    const startY = Math.random() * 30 - 10;
+
+    star.style.left = startX + "%";
+    star.style.top = startY + "%";
+
+    const trajectoryX = (Math.random() * 40 + 60);
+    const trajectoryY = (Math.random() * 30 + 40);
+    const duration = Math.random() * 0.8 + 1.2;
+
+    sky.appendChild(star);
+
+    let opacity = 1;
+    const startTime = Date.now();
+
+    const animate = () => {
+        const elapsed = (Date.now() - startTime) / 1000;
+        const progress = elapsed / duration;
+
+        if (progress >= 1) {
+            star.remove();
+            return;
+        }
+
+        opacity = Math.max(0, 1 - progress * 1.5);
+        star.style.opacity = opacity;
+
+        star.style.transform = `translate(${progress * trajectoryX}vw, ${progress * trajectoryY}vh)`;
+
+        requestAnimationFrame(animate);
+    };
+
+    animate();
+}
+</script>
+
+</body>
+</html>
